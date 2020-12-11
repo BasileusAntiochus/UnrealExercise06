@@ -15,6 +15,9 @@ class SURVIVAL_API UPlayerStatComponent : public UActorComponent
 public:	
 	// Sets default values for this component's properties
 	UPlayerStatComponent();
+public:
+    UPROPERTY(EditAnywhere,Category="S|PlayerStats")
+    FString PlayerName;
 protected:
     UPROPERTY(Replicated)
     float Hunger;
@@ -27,6 +30,10 @@ protected:
     UPROPERTY(Replicated)
     float Health;
     
+    UPROPERTY(Replicated)
+    float Kills;
+    UPROPERTY(Replicated)
+    float Death;
     FTimerHandle TimerHandle;
 protected:
     virtual void GetLifetimeReplicatedProps(TArray <FLifetimeProperty > & OutLifetimeProps) const override;
@@ -49,16 +56,33 @@ protected:
     void ServerLowerHealth(float Value);
     bool ServerLowerHealth_Validate(float Value);
     void ServerLowerHealth_Implementation(float Value);
+    
+    UFUNCTION(Server,Reliable,WithValidation)
+    void ServerLowerKills(float Value);
+    bool ServerLowerKills_Validate(float Value);
+    void ServerLowerKills_Implementation(float Value);
+    
+    UFUNCTION(Server,Reliable,WithValidation)
+    void ServerLowerDeath(float Value);
+    bool ServerLowerDeath_Validate(float Value);
+    void ServerLowerDeath_Implementation(float Value);
 public:
     void LowerHunger(float Value);
     void LowerThirst(float Value);
     void LowerHealth(float Value);
+    void LowerKills(float Value);
+    void LowerDeath(float Value);
     void AddHunger(float Value);
     void AddThirst(float Value);
     void AddHealth(float Value);
+    void AddKills(float Value);
+    void AddDeath(float Value);
     float GetHunger();
     float GetThirst();
     float GetHealth();
+    float GetKills();
+    float GetDeath();
+    FString GetName();
 //    class UPlayerStatComponent* GetStatComponent()
 //    {
 //        return PlayerStatComp;

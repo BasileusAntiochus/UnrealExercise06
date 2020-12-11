@@ -30,6 +30,16 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseLookUpRate;
 
+    
+    //UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    //int GetHitBy;
+    
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    int Kills;
+    
+     UAnimSequence *Anim;
+//    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+//    int ID;
 protected:
     class ULineTrace* LineTraceComp;
     UFUNCTION(BlueprintPure)

@@ -1,9 +1,10 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
+#include "SurvivalCharacter.h"
 #include "PlayerStatComponent.h"
 #include "LineTrace.h"
 #include "Pickups.h"
-#include "SurvivalCharacter.h"
+
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -52,6 +53,11 @@ ASurvivalCharacter::ASurvivalCharacter()
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
     PlayerStatComp = CreateDefaultSubobject<UPlayerStatComponent>("PlayerStatComponent");
     LineTraceComp = CreateDefaultSubobject<ULineTrace>("LineTraceComponent");
+    Kills = 0;
+    //ID = ;
+    
+    static ConstructorHelpers::FObjectFinder<UAnimSequence> anim(TEXT("AnimSequence'/Game/Death_1.Death_1'"));
+    Anim = anim.Object;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -95,13 +101,14 @@ void ASurvivalCharacter::OnResetVR()
 
 void ASurvivalCharacter::TouchStarted(ETouchIndex::Type FingerIndex, FVector Location)
 {
-		Jump();
-    PlayerStatComp->LowerHunger(1);
+//		Jump();
+//    PlayerStatComp->LowerHunger(1);
+    Attack();
 }
 
 void ASurvivalCharacter::TouchStopped(ETouchIndex::Type FingerIndex, FVector Location)
 {
-		StopJumping();
+		//StopJumping();
 }
 
 void ASurvivalCharacter::TurnAtRate(float Rate)
@@ -146,7 +153,11 @@ void ASurvivalCharacter::MoveRight(float Value)
 }
 FString ASurvivalCharacter::ReturnPlayerStats()
 {
-    FString RetString = "Health:" + FString::SanitizeFloat(PlayerStatComp->GetHealth());
+    FString RetString =  PlayerStatComp->PlayerName
+                      +  "  Health:" + FString::SanitizeFloat(PlayerStatComp->GetHealth())
+                      + "  Kills:" + FString::SanitizeFloat(PlayerStatComp->GetKills())
+                      + "  Death:" + FString::SanitizeFloat(PlayerStatComp->GetDeath())
+                      + "\n";
                       
     return RetString;
 }
@@ -162,6 +173,8 @@ void ASurvivalCharacter::Attack()
         UE_LOG(LogTemp,Warning,TEXT("HIT ACTOR:%s"),*Actor->GetName());
         if(ASurvivalCharacter* Player = Cast<ASurvivalCharacter>(Actor))
         {
+            
+            //Player->GetHitsBy=;
             //UE_LOG(LogTemp,Warning,TEXT("ACTOR IS A PICKUP"));
             ServerAttack();
         }
@@ -205,6 +218,12 @@ float ASurvivalCharacter::TakeDamage(float Damage,FDamageEvent const& DamageEven
         {
             //die
             Die();
+            if(ASurvivalCharacter* DC = Cast<ASurvivalCharacter>(DamageCauser)){
+                UE_LOG(LogTemp,Warning,TEXT("Add Kills"));
+                DC->PlayerStatComp->AddKills(-1);
+                
+            }
+            //PlayerStatComp->AddKills(-1);
         }
     }
     return ActualDamage;
@@ -269,6 +288,9 @@ void ASurvivalCharacter::Die()
         }
         //Start out destroy timer to remove actor from world
         GetWorld()->GetTimerManager().SetTimer(DestroyHandle,this,&ASurvivalCharacter::CallDestroy,1.0f,false);
+        
+        bool bLoop = false;
+        GetMesh()->PlayAnimation(Anim,bLoop);
     }
 }
 
@@ -283,7 +305,8 @@ void ASurvivalCharacter::MultiDie_Implementation()
 //    this->GetCharacterMovement()->DisableMovement();
 //    this->GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
 //    this->GetMesh()->SetAllBodiesSimulatePhysics(true);
-    
+    bool bLoop = false;
+    this->GetMesh()->PlayAnimation(Anim,bLoop);
     this->GetMesh()->SetAllBodiesSimulatePhysics(true);
     this->GetMesh()->SetSimulatePhysics(true);
     this->GetMesh()->WakeAllRigidBodies();
